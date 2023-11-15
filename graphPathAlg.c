@@ -276,38 +276,107 @@ pathResult findTunnelRoute( array2D *maze, int k )
 //     //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
 // }
 
-    Graph *graph = buildGraph(maze);
 
-    // Dijkstra maybe? to find the shortest path
-    dijkstrasAlg(graph, createPoint(0, 0));
 
-    // Count the number of 'X' in the path
-    int tunnelCount = 0;
-    int currRow = maze->length - 1;
-    int currCol = maze->width - 1;
-    Point2D prev;
 
-    while (currRow != 0 || currCol != 0)
-    {
-        if (maze->array2D[currRow][currCol] == 'X')
-        {
-            tunnelCount++;
+
+
+
+
+    int i = 0; // i is row
+    int j = 0; // j is column 
+    //int tunnelCount = 0;
+    int ret;
+    int startFound;
+    int finishFound;
+    Point2D start, finish;
+
+    Graph* graph;
+    graph = createGraph(maze->length * maze->width);
+    for( i = 1; i < maze->length-1; i++){
+        for(j = 1; j < maze->width-1; j++){
+            // You need to find 'S' and 'F' coordinates in the maze
+            if (maze->array2D[i][j] == 'S') {
+                start = createPoint(i, j);
+                startFound = 1;
+        }   
+            else if (maze->array2D[i][j] == 'F') {
+                finish = createPoint(i, j);
+                finishFound = 1;
         }
-        getPredecessor(graph, createPoint(currRow, currCol), &prev);
-        currRow = prev.x;
-        currCol = prev.y;
+            if(maze->array2D[i][j] != 'X'){ // if cahracter is not X
+                if(maze->array2D[i][j+1] != 'X'){ // j + 1 is column + 1 so go up
+                    setEdge(graph, createPoint(i, j), createPoint(i, j+1), 1);
+                }
+                if(maze->array2D[i-1][j] != 'X'){ // row - 1 so go left 
+                    setEdge(graph, createPoint(i, j), createPoint(i-1, j), 1 );
+                }
+                if(maze->array2D[i+1][j] != 'X'){ // row + 1 so go right 
+                    setEdge(graph, createPoint(i,j), createPoint(i+1, j), 1 );
+                }
+                if(maze->array2D[i][j-1] != 'X'){ // column + 1 so go up
+                    setEdge(graph, createPoint(i,j), createPoint(i, j+1), 1);
+                }
+
+            }
+            else if(maze->array2D[i][j] == 'X'){ // if the character is X
+                if(maze->array2D[i][j+1] == 'X'){ // j + 1 is column + 1 so go up
+                    setEdge(graph, createPoint(i, j), createPoint(i, j+1), 0);
+                }
+                if(maze->array2D[i-1][j] == 'X'){ // row - 1 so go left 
+                    setEdge(graph, createPoint(i, j), createPoint(i-1, j), 0 );
+                }
+                if(maze->array2D[i+1][j] == 'X'){ // row + 1 so go right 
+                    setEdge(graph, createPoint(i,j), createPoint(i+1, j), 0 );
+                }
+                if(maze->array2D[i][j-1] == 'X'){ // column + 1 so go up
+                    setEdge(graph, createPoint(i,j), createPoint(i, j+1), 0);
+                }
+        }
     }
 
-    freeGraph(graph);
-
-    if (tunnelCount > k)
-    {
+}
+    if (!startFound || !finishFound) {
+    // Handle error: 'S' or 'F' not found
+        freeGraph(graph);
         return PATH_IMPOSSIBLE;
     }
-    else
-    {
+    else{
+        freeGraph(graph);
         return PATH_FOUND;
     }
 
-    //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
+    dijkstrasAlg(graph, start );
+    ret = getDistance(graph, start, finish);
+    freeGraph(graph);
+    return ret;
+
 }
+
+//     Graph* g = createGraph(maze->length * maze ->width);
+//     int ret, row, col;
+//     Point2D start, finish;
+//     for(row = 1; row < maze->length-1; row++){
+//         for(col = 1; col< maze->width-1; col++){
+//             Point2D next = createPoint(row, col);
+//             for(k = 0; maze->array2D[row-k][col-k]!='X'; k++){
+//                 setEdge(g, next, createPoint(row-k, col-k), 1);
+//             }
+//             for(k = 0; maze->array2D[row-k][col+k]!='X'; k++){
+//                 setEdge(g, next, createPoint(row-k, col+k), 1);
+//             }
+//             for(k = 0; maze->array2D[row+k][col-k]!='X'; k++){
+//                 setEdge(g, next, createPoint(row+k, col+k), 1);
+//             }
+//             for(k = 0; maze->array2D[row+k][col+k]!='X'; k++){
+//                 setEdge(g, next, createPoint(row+k, col+k), 1);
+//             }
+//     }
+
+//     }
+//     dijkstrasAlg(g, start);
+//     ret = getDistance(g, start, finish);
+//     freeGraph(g);
+
+//     return ret;
+// }
