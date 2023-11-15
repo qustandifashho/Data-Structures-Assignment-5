@@ -92,14 +92,15 @@ pathResult hasPath( array2D *maze )
     Graph *graph = buildGraph(maze);
 
     Point2D start, finish;
+    int i;
+    int j;
 
     // Find the start and finish points in the maze
-    for (int i = 0; i < maze->length; i++)
+    for (i = 0; i < maze->length; i++)
     {
-        for (int j = 0; j < maze->width; j++)
+        for (j = 0; j < maze->width; j++)
         {
-            if (maze->array2D[i][j] == 'S')
-            {
+            if (maze->array2D[i][j] == 'S'){
                 start = createPoint(i, j);
             }
             else if (maze->array2D[i][j] == 'F')
@@ -278,17 +279,13 @@ pathResult findTunnelRoute( array2D *maze, int k )
 
 
 
-
-
-
-
-
     int i = 0; // i is row
     int j = 0; // j is column 
     //int tunnelCount = 0;
+    int xCount = 0;
     int ret;
-    int startFound;
-    int finishFound;
+    int startFound = 0; // start at 0 for false 
+    int finishFound = 0;
     Point2D start, finish;
 
     Graph* graph;
@@ -298,60 +295,117 @@ pathResult findTunnelRoute( array2D *maze, int k )
             // You need to find 'S' and 'F' coordinates in the maze
             if (maze->array2D[i][j] == 'S') {
                 start = createPoint(i, j);
-                startFound = 1;
-        }   
+                startFound = 1; // 1 meaning it is found (s) true 
+            }   
             else if (maze->array2D[i][j] == 'F') {
                 finish = createPoint(i, j);
-                finishFound = 1;
-        }
-            if(maze->array2D[i][j] != 'X'){ // if cahracter is not X
-                if(maze->array2D[i][j+1] != 'X'){ // j + 1 is column + 1 so go up
-                    setEdge(graph, createPoint(i, j), createPoint(i, j+1), 1);
-                }
-                if(maze->array2D[i-1][j] != 'X'){ // row - 1 so go left 
-                    setEdge(graph, createPoint(i, j), createPoint(i-1, j), 1 );
-                }
-                if(maze->array2D[i+1][j] != 'X'){ // row + 1 so go right 
-                    setEdge(graph, createPoint(i,j), createPoint(i+1, j), 1 );
-                }
-                if(maze->array2D[i][j-1] != 'X'){ // column + 1 so go up
-                    setEdge(graph, createPoint(i,j), createPoint(i, j+1), 1);
-                }
-
+                finishFound = 1; // 1 meaning it is found (f) true 
             }
-            else if(maze->array2D[i][j] == 'X'){ // if the character is X
-                if(maze->array2D[i][j+1] == 'X'){ // j + 1 is column + 1 so go up
+
+
+            
+            //Check for 'X' and increment the count /////////////////////////////////////////////
+            // maze->array2D[i][j] is the the pointer to array 
+            //  if (maze->array2D[i][j]) { // array pointer
+            //      xCount++;
+            //    }
+            
+            
+            
+            
+            
+            //if(maze->array2D[i][j] != 'X'){ // if cahracter is not X
+                if(maze->array2D[i][j+1] != 'X'){ // j + 1 is column + 1 so go up
                     setEdge(graph, createPoint(i, j), createPoint(i, j+1), 0);
                 }
-                if(maze->array2D[i-1][j] == 'X'){ // row - 1 so go left 
+                if(maze->array2D[i-1][j] != 'X'){ // row - 1 so go left 
                     setEdge(graph, createPoint(i, j), createPoint(i-1, j), 0 );
                 }
-                if(maze->array2D[i+1][j] == 'X'){ // row + 1 so go right 
+                if(maze->array2D[i+1][j] != 'X'){ // row + 1 so go right 
                     setEdge(graph, createPoint(i,j), createPoint(i+1, j), 0 );
                 }
-                if(maze->array2D[i][j-1] == 'X'){ // column + 1 so go up
-                    setEdge(graph, createPoint(i,j), createPoint(i, j+1), 0);
+                if(maze->array2D[i][j-1] != 'X'){ // column + 1 so go up
+                    setEdge(graph, createPoint(i,j), createPoint(i, j-1), 0);
                 }
-        }
+
+            //}
+            //else if(maze->array2D[i][j] == 'X'){ // if the character is X
+                if(maze->array2D[i][j+1] == 'X'){ // j + 1 is column + 1 so go up
+                    setEdge(graph, createPoint(i, j), createPoint(i, j+1), 1);
+                }
+                if(maze->array2D[i-1][j] == 'X'){ // row - 1 so go left 
+                    setEdge(graph, createPoint(i, j), createPoint(i-1, j), 1 );
+                }
+                if(maze->array2D[i+1][j] == 'X'){ // row + 1 so go right 
+                    setEdge(graph, createPoint(i,j), createPoint(i+1, j), 1 );
+                }
+                if(maze->array2D[i][j-1] == 'X'){ // column + 1 so go up
+                    setEdge(graph, createPoint(i,j), createPoint(i, j+1), 1);
+                }
+                 
+              }
+        //}
     }
 
-}
-    if (!startFound || !finishFound) {
-    // Handle error: 'S' or 'F' not found
-        freeGraph(graph);
-        return PATH_IMPOSSIBLE;
-    }
+
+
+
+// number of x's you travel through compare that to the k's (xCount
+// 'Xcount' less than or equal to k
+
+    //printf("XCOUNT: %d\n", xCount);
+    dijkstrasAlg(graph, start);  
+    xCount = getDistance(graph, start, finish);
+    if(xCount <= k){
+      //ret = getDistance(graph, start, finish); //////// what to do with this?
+      freeGraph(graph);
+      return PATH_FOUND;
+      
+      }
+
     else{
-        freeGraph(graph);
-        return PATH_FOUND;
+      freeGraph(graph);
+      return PATH_IMPOSSIBLE;
     }
-
-    dijkstrasAlg(graph, start );
-    ret = getDistance(graph, start, finish);
-    freeGraph(graph);
-    return ret;
-
 }
+
+
+    //return ret;
+
+     
+    
+
+
+
+
+    // dijkstrasAlg(graph, start );
+    // ret = getDistance(graph, start, finish);
+    // freeGraph(graph);
+   
+
+    
+    //if (!startFound || !finishFound) {
+      // S' or 'F' not found
+        //freeGraph(graph);
+        // return PATH_IMPOSSIBLE;
+    //}
+    //else{
+        //freeGraph(graph);
+        //return PATH_FOUND;
+    //}
+
+
+
+// tested memory leaks with valgrind, none were found, and no forever loop that gave valgrind issues  
+
+
+
+
+
+
+
+
+
 
 //     Graph* g = createGraph(maze->length * maze ->width);
 //     int ret, row, col;
