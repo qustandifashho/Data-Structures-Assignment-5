@@ -15,15 +15,6 @@ void printName( )
     printf("Qustandi Fashho\n");
 }
 
-
-
-
-
-
-
-
-
-
 /* OPTIONAL HELPER FUNCTION
  * buildGraph
  *
@@ -46,7 +37,7 @@ Graph* buildGraph( array2D* maze /* and other parameters you find helpful */  )
     for(i = 0; i < rows; i++){
         for(j = 0; j < cols; j++){
             char cell = maze->array2D[i][j];
-            if (cell == 'X'){
+            if (cell =='X'){
                 continue;
             }
              // Create points for the current cell and its neighboring cells
@@ -83,15 +74,6 @@ Graph* buildGraph( array2D* maze /* and other parameters you find helpful */  )
     return graph; /* TODO: Replace with your graph representing maze */
 }
 
-
-
-
-
-
-
-
-
-
 /* hasPath
  * input: an array2D pointer to a maze
  * output: pathResult
@@ -105,27 +87,57 @@ pathResult hasPath( array2D *maze )
     /* HINT 2: My solution also used createPoint from point2D.c */
     /* HINT 3: You might also consider using the new helper function buildGraph to build the graph representing maze. */
 
-    
+
     // make sure I used all the functions mentioned
-    Graph* graph = buildGraph(maze);
-    dijkstrasAlg(graph, createPoint(0,0)); // dij does shortest path 
-    double distanceToEnd = getDistance(graph, createPoint(0,0), createPoint(maze->length - 1, maze->width - 1));
+    Graph *graph = buildGraph(maze);
 
+    Point2D start, finish;
 
+    // Find the start and finish points in the maze
+    for (int i = 0; i < maze->length; i++)
+    {
+        for (int j = 0; j < maze->width; j++)
+        {
+            if (maze->array2D[i][j] == 'S')
+            {
+                start = createPoint(i, j);
+            }
+            else if (maze->array2D[i][j] == 'F')
+            {
+                finish = createPoint(i, j);
+            }
+        }
+    }
+
+    dijkstrasAlg(graph, start); // dij does shortest path
+    double distanceToEnd = getDistance(graph, start, finish);
 
     // free
     freeGraph(graph);
-    //determine of the path exists:
-    if(distanceToEnd == INT_MAX){
+    //determine if the path exists:
+    if (distanceToEnd == INT_MAX)
+    {
         return PATH_IMPOSSIBLE;
     }
-    else{
+    else
+    {
         return PATH_FOUND;
     }
-   
 
     //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -144,57 +156,62 @@ pathResult hasPath( array2D *maze )
  */
 pathResult findNearestFinish( array2D *maze, int *spDist )
 {
-    //TODO: Complete this function
+    // TODO: Complete this function
     /* HINT 1: To solve this, my solution used the functions createGraph, freeGraph, setEdge, dijkstrasAlg, getDistance from graph.c */
     /* HINT 2: My solution also used createPoint from point2D.c */
     /* HINT 3: You might also consider using the new helper function buildGraph to build the graph representing maze. */
-    
+
+
     Graph* graph = buildGraph(maze);
 
-    // dij finds shortest path 
-    dijkstrasAlg(graph, createPoint(0,0));
+    // Find the start point in the maze
+    Point2D start;
+    int i, j;
 
-    //Finding nearest 'F' and its distance 
-    int finishRow = -1;
-    int finishColumn = -1;
-    double nearestDistanceToFinish = INT_MAX;
-    double distance;
-    int i = 0; // to length of maze 
-    int j = 0; // to width of maze 
+    for (i = 0; i < maze->length; i++) {
+        for (j = 0; j < maze->width; j++) {
+            if (maze->array2D[i][j] == 'S') {
+                start = createPoint(i, j);
+                break; // Stop searching once 'S' is found
+            }
+        }
+    }
 
-    for(i = 0; i < maze->length; i++){
-        for(j = 0; j < maze->width; j++){
-            if(maze->array2D[i][j] == 'F'){
-                distance = getDistance(graph, createPoint(0,0), createPoint(i,j)); 
-                if(distance < nearestDistanceToFinish){
-                    nearestDistanceToFinish = distance;
-                    finishRow = i;
-                    finishColumn = j;
+    int minDistance = INT_MAX;
+
+    // Loop through all 'F' positions and find the minimum distance
+    for (i = 0; i < maze->length; i++) {
+        for (j = 0; j < maze->width; j++) {
+            if (maze->array2D[i][j] == 'F') {
+                Point2D finish = createPoint(i, j);
+
+                // Dijkstra finds the shortest path
+                dijkstrasAlg(graph, start);
+
+                // Find the distance to the current 'F'
+                double distanceToFinish = getDistance(graph, start, finish);
+
+                // Update minDistance if the current distance is smaller
+                if (distanceToFinish < minDistance) {
+                    minDistance = (int)distanceToFinish;
                 }
             }
         }
     }
 
-    if(nearestDistanceToFinish == INT_MAX){
-        (*spDist) = INT_MAX;
-        free(graph);
+    freeGraph(graph);
+
+    if (minDistance == INT_MAX) {
+        *spDist = INT_MAX;
         return PATH_IMPOSSIBLE;
-    }
-    else{
-        // updating spdist with the shortest path distance 
-        (*spDist) = (int)nearestDistanceToFinish;
-        free(graph);
+    } else {
+        // Update spDist with the shortest path distance
+        *spDist = minDistance;
         return PATH_FOUND;
     }
-
-    
-    
-    //(*spDist) = INT_MAX; /* TODO: This returns your shortest path distance to any 'F' from the 'S'.  Set it to INT_MAX if no path exists. */
-     
-   
-    
-    //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
 }
+
+
 
 
 
@@ -216,39 +233,81 @@ pathResult findTunnelRoute( array2D *maze, int k )
     /* HINT 1: To solve this, my solution used the functions createGraph, freeGraph, setEdge, dijkstrasAlg, getDistance from graph.c */
     /* HINT 2: My solution also used createPoint from point2D.c */
     /* HINT 3: You might also consider using the new helper function buildGraph to build the graph representing maze. */
-    Graph* graph = buildGraph(maze);
 
-    // Dijkstrra maybe? to find shortest path 
-    dijkstrasAlg(graph, createPoint(0,0));
+    // You will need to build a graph which is slightly different from part 1 and 2 (currently it looks like you build the same graph).  
+    // Specifically, for part 3, think about what the cost should be for an edge going through a 'X' and what the cost should be for an edge going through a ' '.  
+    // Then, when you find the shortest path length from 'S' to 'F', it will be the number of walls you need to tunnel through.
 
-    //count number of x in the path 
+    
+//     Graph* graph = buildGraph(maze);
+
+//     // Dijkstrra maybe? to find shortest path 
+//     dijkstrasAlg(graph, createPoint(0,0));
+
+//     //count number of x in the path 
+//     int tunnelCount = 0;
+//     int currRow = maze->length-1;
+//     int currCol = maze->width-1;
+//     Point2D prev;
+
+
+//     while(currRow != 0|| currCol != 0){
+//         if(maze->array2D[currRow][currCol] == 'X'){
+//             tunnelCount++;
+//         }
+//         getPredecessor(graph, createPoint(currRow, currCol), &prev);
+//         currRow = prev.x;
+//         currCol = prev.y;
+    
+        
+
+//     }
+//     freeGraph(graph);
+
+//     if (tunnelCount > k) {
+//         return PATH_IMPOSSIBLE;
+//     } else {
+//         return PATH_FOUND;
+//     }
+
+
+   
+    
+//     //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
+// }
+
+    Graph *graph = buildGraph(maze);
+
+    // Dijkstra maybe? to find the shortest path
+    dijkstrasAlg(graph, createPoint(0, 0));
+
+    // Count the number of 'X' in the path
     int tunnelCount = 0;
-    int currRow = maze->length-1;
-    int currCol = maze->width-1;
+    int currRow = maze->length - 1;
+    int currCol = maze->width - 1;
     Point2D prev;
 
-
-    while(currRow != 0|| currCol != 0){
-        if(maze->array2D[currRow][currCol] == 'X'){
+    while (currRow != 0 || currCol != 0)
+    {
+        if (maze->array2D[currRow][currCol] == 'X')
+        {
             tunnelCount++;
         }
         getPredecessor(graph, createPoint(currRow, currCol), &prev);
         currRow = prev.x;
         currCol = prev.y;
-    
-        
-
     }
-    free(graph);
 
-    if (tunnelCount > k) {
+    freeGraph(graph);
+
+    if (tunnelCount > k)
+    {
         return PATH_IMPOSSIBLE;
-    } else {
+    }
+    else
+    {
         return PATH_FOUND;
     }
 
-
-   
-    
     //return PATH_UNKNOWN; /* TODO: Replace with PATH_FOUND or PATH_IMPOSSIBLE based on whether a path exists */
 }
